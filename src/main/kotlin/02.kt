@@ -4,9 +4,11 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 
 
-private val parsedData
-    get() = fileReader("02.txt").lineSequence()
+private val parsedData by lazy {
+    fileReader("02.txt").lineSequence()
         .map { it.split("\\s+".toRegex()).map(String::toInt) }
+        .toList()
+}
 
 private fun List<Int>.isValid(): Boolean {
     val diffs = windowed(2) { (a, b) -> b - a }
@@ -15,17 +17,21 @@ private fun List<Int>.isValid(): Boolean {
     return isValidIncreasing || isValidDecreasing
 }
 
-private fun task1() = parsedData.count { it.isValid() }
+object Day02a : Task<Int>({
+    parsedData.count { it.isValid() }
+})
 
-private fun task2() = parsedData.count { line ->
-    sequence {
-        yield(line)
-        for (i in 0..<(line.size))
-            yield(line.toMutableList().apply { removeAt(i) })
-    }.any { it.isValid() }
-}
+object Day02b : Task<Int>({
+    parsedData.count { line ->
+        sequence {
+            yield(line)
+            for (i in 0..<(line.size))
+                yield(line.toMutableList().apply { removeAt(i) })
+        }.any { it.isValid() }
+    }
+})
 
 fun main() {
-    task1().let(::println)
-    task2().let(::println)
+    Day02a.execute()
+    Day02b.execute()
 }

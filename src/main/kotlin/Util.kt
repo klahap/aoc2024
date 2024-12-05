@@ -1,5 +1,12 @@
 package io.github.klahap
 
+sealed class Task<T : Any>(val block: () -> T) {
+    fun execute(silent: Boolean = false): T = block().also {
+        if (!silent)
+            println("${this::class.simpleName}: ${it.toString().padStart(10, ' ')}")
+    }
+}
+
 fun fileReader(name: String) = Thread.currentThread().contextClassLoader
     .getResourceAsStream(name)!!.bufferedReader()
 
@@ -54,3 +61,11 @@ fun String.toCharMatrix(): Matrix<Char> {
 fun Iterable<Char>.concat() = this.joinToString(separator = "")
 
 fun String.count(pattern: String): Int = split(pattern).size - 1
+
+fun <T> MutableList<T>.swap(i: Int, j: Int) {
+    val tmp = this[i]
+    this[i] = this[j]
+    this[j] = tmp
+}
+
+fun <T> MutableList<T>.swapElements(x: T, y: T) = swap(indexOf(x), indexOf(y))
