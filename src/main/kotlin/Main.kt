@@ -1,6 +1,8 @@
 package io.github.klahap
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.microseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
 private val Task<*>.expectedResult
@@ -23,17 +25,27 @@ fun main() {
         .sortedBy { it::class.simpleName }
 
     tasks.forEach {
-        val actual = it.execute()
+        val actual = it.execute(silent = true)
         val expected = it.expectedResult
         if (actual != expected)
-            throw AssertionError("$actual != $expected")
+            throw AssertionError("error in ${it.taskName}: $actual != $expected")
     }
 
-    val n = 100
-    val executionDuration = (0..<n).sumOf {
-        measureTime {
-            tasks.forEach { it.execute(silent = true) }
-        }.inWholeMicroseconds
-    }.let { it / n }.microseconds
-    println("execution duration: $executionDuration")
+    val n = 1000
+     mutableMapOf<Task<*>, Duration>().also { executionTimes ->
+        (0..<n).forEach {
+            tasks.forEach { task ->
+                val d = measureTime { task.execute(silent = true) }
+                executionTimes.compute(task) { _, p1 -> (p1 ?: 0.seconds) + d }
+            }
+        }
+    }
+        .mapValues { it.value / n }
+        .entries.sortedBy { it.key.taskName.name }
+        .onEach { (key, value) ->
+            val prettyResult = key.expectedResult.toString().padStart(10, ' ')
+            val prettyDuration = value.toString().padStart(13, ' ')
+            println("${key.taskName}: $prettyResult in $prettyDuration")
+        }.sumOf { it.value.inWholeMicroseconds }.microseconds
+        .let { "execution duration: $it" }
 }

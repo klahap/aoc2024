@@ -1,36 +1,38 @@
 package io.github.klahap
 
+@JvmInline
+value class TaskName(val name: String) {
+    override fun toString(): String = name
+}
+
 sealed class Task<T : Any>(val block: () -> T) {
     fun execute(silent: Boolean = false): T = block().also {
         if (!silent)
-            println("${this::class.simpleName}: ${it.toString().padStart(10, ' ')}")
+            println("$taskName: ${it.toString().padStart(10, ' ')}")
     }
+
+    val taskName get() = TaskName(this::class.simpleName!!)
 }
 
 fun fileReader(name: String) = Thread.currentThread().contextClassLoader
     .getResourceAsStream(name)!!.bufferedReader()
 
-class Matrix<T : Any>(
-    private val data: List<T>,
-    val zero: T,
-    val n: Int, // #Rows
-    val m: Int, // #Columns
-    val iInc: Int, // iterator steps row
-    val jInc: Int, // iterator steps column
-) {
-    fun getOrNull(i: Int, j: Int): T? {
-        return if (i !in 0..<n || j !in 0..<m)
-            null
-        else
-            data[i * iInc + j * jInc]
-    }
+sealed interface Matrix<T : Any, Vec : Any> {
+    val zero: T
+    val n: Int
+    val m: Int
+    val iInc: Int
+    val jInc: Int
+    fun generateVec(size: Int, block: (Int) -> T): Vec
 
+    fun getOrNull(i: Int, j: Int): T?
     fun getOrZero(i: Int, j: Int): T = getOrNull(i = i, j = j) ?: zero
     fun get(i: Int, j: Int): T = getOrNull(i = i, j = j) ?: throw IndexOutOfBoundsException()
-    fun row(i: Int): List<T> = List(m) { get(i, it) }
-    fun col(j: Int): List<T> = List(n) { get(it, j) }
-    fun diagX(k: Int): List<T> = List(m) { getOrZero(k + it, it) }
-    fun diagY(k: Int): List<T> = List(m) { getOrZero(k - it, it) }
+
+    fun row(i: Int): Vec = generateVec(m) { get(i, it) }
+    fun col(j: Int): Vec = generateVec(n) { get(it, j) }
+    fun diagX(k: Int): Vec = generateVec(m) { getOrZero(k + it, it) }
+    fun diagY(k: Int): Vec = generateVec(m) { getOrZero(k - it, it) }
 
     fun indices(): Sequence<Pair<Int, Int>> =
         (0..<n).asSequence().flatMap { i -> (0..<n).asSequence().map { j -> i to j } }
@@ -44,12 +46,30 @@ class Matrix<T : Any>(
     val diagsY get() = (0..<n + m - 1).asSequence().map { diagY(it) }
 }
 
-fun String.toCharMatrix(): Matrix<Char> {
+class CharMatrix(
+    private val data: CharArray,
+    override val zero: Char,
+    override val n: Int, // #Rows
+    override val m: Int, // #Columns
+    override val iInc: Int, // iterator steps row
+    override val jInc: Int, // iterator steps column
+) : Matrix<Char, CharArray> {
+    override fun generateVec(size: Int, block: (Int) -> Char) = CharArray(size, block)
+
+    override fun getOrNull(i: Int, j: Int): Char? {
+        return if (i !in 0..<n || j !in 0..<m)
+            null
+        else
+            data[i * iInc + j * jInc]
+    }
+}
+
+fun String.toCharMatrix(): CharMatrix {
     val rows = this.split('\n')
     val nofCols = rows.map { it.length }.distinct().singleOrNull()
         ?: throw IllegalArgumentException("different column sizes")
-    return Matrix<Char>(
-        data = rows.joinToString(separator = "").toList(),
+    return CharMatrix(
+        data = rows.joinToString(separator = "").toCharArray(),
         zero = ' ',
         n = rows.size,
         m = nofCols,
@@ -58,14 +78,15 @@ fun String.toCharMatrix(): Matrix<Char> {
     )
 }
 
-fun Iterable<Char>.concat() = this.joinToString(separator = "")
-
-fun String.count(pattern: String): Int = split(pattern).size - 1
-
-fun <T> MutableList<T>.swap(i: Int, j: Int) {
-    val tmp = this[i]
-    this[i] = this[j]
-    this[j] = tmp
+fun String.count(pattern: String, withOverlapping: Boolean): Int {
+    if (pattern.isEmpty()) throw IllegalArgumentException("pattern must not be empty")
+    var pos = 0
+    var found = 0
+    while (pos <= length) {
+        val p = indexOf(pattern, startIndex = pos)
+        if (p == -1) break
+        found++
+        pos = p + if (withOverlapping) pattern.length else 1
+    }
+    return found
 }
-
-fun <T> MutableList<T>.swapElements(x: T, y: T) = swap(indexOf(x), indexOf(y))

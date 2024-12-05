@@ -19,9 +19,6 @@ private val parsedData: Pair<Set<Rule>, List<Pages>> by lazy {
 @JvmInline
 private value class Rule(val data: Pair<Int, Int>) {
     constructor(first: Int, second: Int) : this(first to second)
-
-    val first get() = data.first
-    val second get() = data.second
 }
 
 @JvmInline
@@ -29,35 +26,26 @@ private value class Pages(val data: List<Int>) {
     val midElement get() = data[data.size / 2]
 }
 
-private fun Pages.invalidRules(validRules: Set<Rule>) = data.asSequence().flatMapIndexed { i1, p1 ->
-    data.asSequence().take(i1).map { p0 -> Rule(p1, p0) }
-}.filter { it in validRules }.toSet()
-
-private fun Pages.isOrdered(rules: Set<Rule>) = invalidRules(rules).isEmpty()
-
-private fun Pages.order(rules: Set<Rule>): Pages {
-    val result = this.data.toMutableList()
-    while (true) {
-        val invalidRules = Pages(result).invalidRules(rules)
-        if (invalidRules.isEmpty()) break
-        invalidRules.forEach { result.swapElements(it.first, it.second) }
-    }
-    return Pages(result.toList())
+private fun Set<Rule>.toComparator() = Comparator<Int> { p0, p1 ->
+    if (contains(Rule(p1, p0))) 1
+    else -1
 }
+
+private fun Pages.sortedByRules(rules: Set<Rule>) = Pages(data.sortedWith(rules.toComparator()))
+
 
 object Day05a : Task<Int>({
     val (rules, pagesRow) = parsedData
     pagesRow.asSequence()
-        .filter { it.isOrdered(rules) }
+        .filter { it.sortedByRules(rules) == it }
         .sumOf { it.midElement }
 })
 
 object Day05b : Task<Int>({
     val (rules, pagesRow) = parsedData
     pagesRow.asSequence()
-        .filter { !it.isOrdered(rules) }
-        .sumOf { it.order(rules).midElement }
-
+        .mapNotNull { it.sortedByRules(rules).takeIf { sorted -> sorted != it } }
+        .sumOf { it.midElement }
 })
 
 fun main() {
