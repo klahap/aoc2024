@@ -22,7 +22,7 @@ private val Task<*>.expectedResult
     }
 
 fun main() {
-    val tasks = Task::class.sealedSubclasses
+    val tasks = (Task::class.sealedSubclasses + AsyncTask::class.sealedSubclasses)
         .mapNotNull { it.objectInstance }
         .sortedBy { it::class.simpleName }
 

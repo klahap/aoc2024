@@ -1,14 +1,12 @@
 package io.github.klahap
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.count
 
-private val parsedData
-    get() = fileReader("06.txt").lineSequence().map { line ->
+private val parsedData by lazy {
+    fileReader("06.txt").lineSequence().map { line ->
         line.map { c ->
             when (c) {
                 '^' -> State.VISIT_UP.mask
@@ -18,8 +16,9 @@ private val parsedData
             }
         }
     }.toList().toMatrix()
+}
 
-private enum class State(val value: Int) {
+private enum class State(shift: Int) {
     NONE(-1),
     VISIT_UP(0),
     VISIT_DOWN(1),
@@ -27,13 +26,8 @@ private enum class State(val value: Int) {
     VISIT_LEFT(3),
     BLOCK(4);
 
-    val mask = (1 shl value).toUByte()
+    val mask = (1 shl shift).toUByte()
 }
-
-private fun UByte.hasState(state: State) = (this and state.mask) != State.NONE.mask
-private fun UByte.isBlock() = hasState(State.BLOCK)
-private fun UByte.hasNoState() = this == State.NONE.mask
-private fun UByte.addState(state: State) = this or state.mask
 
 private enum class Direction(
     val vec: IntPos2D,
@@ -52,15 +46,17 @@ private enum class Direction(
     }
 }
 
-private enum class StopReason {
-    OUT_OF_BOUNDS,
-    LOOP,
-}
+private enum class StopReason { LOOP, OUT_OF_BOUNDS }
+
+private fun UByte.hasState(state: State) = (this and state.mask) != State.NONE.mask
+private fun UByte.isBlock() = hasState(State.BLOCK)
+private fun UByte.hasNoState() = this == State.NONE.mask
+private fun UByte.addState(state: State) = this or state.mask
 
 private inline fun UByteMatrix.walk(
-    pos: IntPos2D,
-    direction: Direction,
-    stopCondition: (UByte, IntPos2D, Direction) -> StopReason?,
+    pos: IntPos2D = find(State.VISIT_UP.mask)!!,
+    direction: Direction = Direction.UP,
+    stopCondition: UByteMatrix.(UByte, IntPos2D, Direction) -> StopReason?,
 ): StopReason {
     var pos = pos
     var direction = direction
@@ -69,76 +65,51 @@ private inline fun UByteMatrix.walk(
         stopCondition(b, pos, direction)?.let { return it }
         when {
             b.isBlock() -> {
-                pos = pos - direction.vec
+                pos -= direction.vec
                 direction = direction.rotate90()
             }
 
             else -> set(pos, b.addState(direction.state))
         }
-        pos = pos + direction.vec
+        pos += direction.vec
     }
 }
 
+private fun UByteMatrix.isLoop(pos: IntPos2D, direction: Direction): Boolean {
+    val stopReason = walk(pos = pos, direction = direction) { value, _, direction ->
+        if (value.hasState(direction.state)) StopReason.LOOP else null
+    }
+    return stopReason == StopReason.LOOP
+}
 
 object Day06a : Task<Int>({
-    val matrix = parsedData
     var result = 1
-    matrix.walk(
-        pos = matrix.find(State.VISIT_UP.mask)!!,
-        direction = Direction.UP,
-    ) { b, _, _ ->
+    parsedData.copy().walk { b, _, _ ->
         if (b.hasNoState()) result++
         null
     }
     result
 })
 
-private data class CheckIsLoopJob(
-    val matrix: UByteMatrix,
-    val pos: IntPos2D,
-    val direction: Direction,
-) {
-    fun execute(): Boolean {
-        val stopReason = matrix.walk(
-            pos = pos + direction.vec,
-            direction = direction,
-        ) { value, _, direction ->
-            if (value.hasState(direction.state)) StopReason.LOOP else null
-        }
-        return stopReason == StopReason.LOOP
+object Day06b : AsyncTask<Int>({
+    val jobs = Channel<() -> Boolean>(capacity = Channel.UNLIMITED)
+    val worker = launchWorker(nofWorkers = 20) {
+        jobs.consumeAsFlow().count { job -> job() }
     }
-}
-
-@OptIn(DelicateCoroutinesApi::class)
-object Day06b : Task<Int>({
-    val matrix = parsedData
-    var result = MutableStateFlow(0)
-
-    runBlocking(Dispatchers.Default) {
-        val jobs = Channel<CheckIsLoopJob>(capacity = 0)
-        launchWorker(20) {
-            for (job in jobs)
-                if (job.execute())
-                    result.update { it + 1 }
-        }
-
-        matrix.walk(
-            pos = matrix.find(State.VISIT_UP.mask)!!,
-            direction = Direction.UP,
-        ) { value, pos, direction ->
-            if (value.hasNoState()) {
-                val job = CheckIsLoopJob(
-                    matrix = matrix.copy().apply { set(pos, State.BLOCK.mask) },
-                    pos = pos - direction.vec,
+    parsedData.copy().walk { value, pos, direction ->
+        if (value.hasNoState()) {
+            val searchMatrix = copy().apply { set(pos, State.BLOCK.mask) }
+            jobs.send {
+                searchMatrix.isLoop(
+                    pos = pos - direction.vec + direction.rotate90().vec,
                     direction = direction.rotate90(),
                 )
-                jobs.send(job)
             }
-            null
         }
-        jobs.close()
+        null
     }
-    result.value
+    jobs.close()
+    worker.awaitAll().sum()
 })
 
 fun main() {

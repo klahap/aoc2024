@@ -1,8 +1,10 @@
 package io.github.klahap
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 
 @JvmInline
 value class TaskName(val name: String) {
@@ -17,6 +19,9 @@ sealed class Task<T : Any>(val block: () -> T) {
 
     val taskName get() = TaskName(this::class.simpleName!!)
 }
+
+sealed class AsyncTask<T : Any>(block: suspend CoroutineScope.() -> T) :
+    Task<T>({ runBlocking(Dispatchers.Default, block) })
 
 fun fileReader(name: String) = Thread.currentThread().contextClassLoader
     .getResourceAsStream(name)!!.bufferedReader()
@@ -40,7 +45,7 @@ sealed interface Matrix<T : Any, Vec : Any> {
     val jInc: Int
     fun generateVec(size: Int, block: (Int) -> T): Vec
 
-    fun isValidPosition(i: Int, j: Int): Boolean = // TODO operator
+    fun isValidPosition(i: Int, j: Int): Boolean =
         (i in 0..<n && j in 0..<m)
 
     fun indexToPos(x: Int): IntPos2D = when {
@@ -50,23 +55,25 @@ sealed interface Matrix<T : Any, Vec : Any> {
         else -> throw NotImplementedError() // TODO
     }
 
-    fun get(i: Int, j: Int): T
+    operator fun get(index: Int): T
+    operator fun get(i: Int, j: Int): T = get(i * iInc + j * jInc)
     fun getOrNull(i: Int, j: Int): T? = when {
-        isValidPosition(i, j) -> get(i, j)
+        isValidPosition(i, j) -> get(i * iInc + j * jInc)
         else -> null
     }
 
     fun getOrZero(i: Int, j: Int): T = when {
-        isValidPosition(i, j) -> get(i, j)
+        isValidPosition(i, j) -> get(i * iInc + j * jInc)
         else -> zero
     }
 
-    fun get(pos: IntPos2D): T = get(pos.x, pos.y)
+    operator fun get(pos: IntPos2D): T = get(pos.x * iInc + pos.y * jInc)
     fun getOrNull(pos: IntPos2D): T? = getOrNull(pos.x, pos.y)
     fun getOrZero(pos: IntPos2D): T = getOrZero(pos.x, pos.y)
 
-    fun set(i: Int, j: Int, value: T)
-    fun set(pos: IntPos2D, value: T) = set(pos.x, pos.y, value)
+    operator fun set(index: Int, value: T)
+    operator fun set(i: Int, j: Int, value: T) = set(i * iInc + j * jInc, value)
+    operator fun set(pos: IntPos2D, value: T) = set(pos.x * iInc + pos.y * jInc, value)
 
     fun row(i: Int): Vec = generateVec(m) { get(i, it) }
     fun col(j: Int): Vec = generateVec(n) { get(it, j) }
@@ -93,41 +100,25 @@ class CharMatrix(
     override val iInc: Int, // iterator steps row
     override val jInc: Int, // iterator steps column
 ) : Matrix<Char, CharArray> {
-    fun copy() = CharMatrix(
-        data = data.clone(),
-        zero = zero,
-        n = n,
-        m = m,
-        iInc = iInc,
-        jInc = jInc,
-    )
+    fun copy() = CharMatrix(data = data.clone(), zero = zero, n = n, m = m, iInc = iInc, jInc = jInc)
 
     fun slice(i: Int, j: Int, n: Int, m: Int) = CharMatrix(
         data = CharArray(n * m) { get(i + it % m, j + it / m) },
         zero = zero,
-        n = n,
-        m = m,
-        iInc = m,
-        jInc = 1,
+        n = n, m = m,
+        iInc = m, jInc = 1,
     )
 
     override fun generateVec(size: Int, block: (Int) -> Char) = CharArray(size, block)
+    override operator fun get(index: Int) = data[index]
+    override operator fun set(index: Int, value: Char) = run { data[index] = value }
 
-    override fun get(i: Int, j: Int) = data[i * iInc + j * jInc]
-    override fun set(i: Int, j: Int, value: Char) {
-        data[i * iInc + j * jInc] = value
-    }
-
-    fun find(c: Char) = data.indexOf(c)
-        .takeIf { it != -1 }
-        ?.let { indexToPos(it) }
+    fun find(c: Char) = data.indexOf(c).takeIf { it != -1 }?.let { indexToPos(it) }
 
     fun toString(separator: String) =
         rows.joinToString("\n") { row -> row.joinToString(separator) { it.toString() } }
 }
 
-
-@OptIn(ExperimentalUnsignedTypes::class)
 class UByteMatrix(
     private val data: UByteArray,
     override val zero: UByte,
@@ -136,54 +127,35 @@ class UByteMatrix(
     override val iInc: Int, // iterator steps row
     override val jInc: Int, // iterator steps column
 ) : Matrix<UByte, UByteArray> {
-    fun copy() = UByteMatrix(
-        data = data.copyOf(),
-        zero = zero,
-        n = n,
-        m = m,
-        iInc = iInc,
-        jInc = jInc,
-    )
+    fun copy() = UByteMatrix(data = data.copyOf(), zero = zero, n = n, m = m, iInc = iInc, jInc = jInc)
 
     fun slice(i: Int, j: Int, n: Int, m: Int) = UByteMatrix(
         data = UByteArray(n * m) { get(i + it % m, j + it / m) },
         zero = zero,
-        n = n,
-        m = m,
-        iInc = m,
-        jInc = 1,
+        n = n, m = m,
+        iInc = m, jInc = 1,
     )
 
     override fun generateVec(size: Int, block: (Int) -> UByte) = UByteArray(size, block)
+    override operator fun get(index: Int) = data[index]
+    override operator fun set(index: Int, value: UByte) = run { data[index] = value }
 
-    override fun get(i: Int, j: Int) = data[i * iInc + j * jInc]
-    override fun set(i: Int, j: Int, value: UByte) {
-        data[i * iInc + j * jInc] = value
-    }
-
-    fun find(c: UByte) = data.indexOf(c)
-        .takeIf { it != -1 }
-        ?.let { indexToPos(it) }
-
-    fun toString(separator: String) =
-        rows.joinToString("\n") { row -> row.joinToString(separator) { it.toString() } }
+    fun find(c: UByte) = data.indexOf(c).takeIf { it != -1 }?.let { indexToPos(it) }
 }
 
-fun String.toCharMatrix(): CharMatrix {
-    val rows = this.split('\n')
-    val nofCols = rows.map { it.length }.distinct().singleOrNull()
+fun List<String>.toCharMatrix(): CharMatrix {
+    val nofCols = map { it.length }.distinct().singleOrNull()
         ?: throw IllegalArgumentException("different column sizes")
     return CharMatrix(
-        data = rows.joinToString(separator = "").toCharArray(),
+        data = joinToString(separator = "").toCharArray(),
         zero = ' ',
-        n = rows.size,
+        n = size,
         m = nofCols,
         iInc = nofCols,
         jInc = 1,
     )
 }
 
-@OptIn(ExperimentalUnsignedTypes::class) // TODO
 fun List<List<UByte>>.toMatrix(): UByteMatrix {
     val nofCols = map { it.size }.distinct().singleOrNull()
         ?: throw IllegalArgumentException("different column sizes")
@@ -210,7 +182,7 @@ fun String.count(pattern: String, withOverlapping: Boolean): Int {
     return found
 }
 
-fun CoroutineScope.launchWorker(
+fun <T> CoroutineScope.launchWorker(
     nofWorkers: Int,
-    block: suspend CoroutineScope.(Int) -> Unit,
-): List<Job> = (0..<nofWorkers).map { launch { block(it) } }
+    block: suspend CoroutineScope.(Int) -> T,
+): List<Deferred<T>> = (0..<nofWorkers).map { async { block(it) } }

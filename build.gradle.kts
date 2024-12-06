@@ -16,4 +16,9 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.add("-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+        freeCompilerArgs.add("-Xopt-in=kotlinx.coroutines.DelicateCoroutinesApi")
+        freeCompilerArgs.add("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+    }
 }

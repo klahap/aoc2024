@@ -1,6 +1,6 @@
 package io.github.klahap
 
-private val matrix by lazy { fileReader("04.txt").readText().toCharMatrix() }
+private val matrix by lazy { fileReader("04.txt").readLines().toCharMatrix() }
 
 object Day04a : Task<Int>({
     matrix.run {
