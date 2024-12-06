@@ -3,7 +3,7 @@ package io.github.klahap
 import kotlin.math.absoluteValue
 
 private val parsedData by lazy {
-    fileReader("01.txt").lineSequence()
+    fileReader("data/01.txt").lineSequence()
         .map {
             val e1 = it.substringBefore(' ').toInt()
             val e2 = it.substringAfterLast(' ').toInt()
@@ -30,8 +30,3 @@ object Day01b : Task<Int>({
         }
     }
 })
-
-fun main() {
-    Day01a.execute()
-    Day01b.execute()
-}

@@ -5,7 +5,7 @@ import kotlin.collections.component2
 
 
 private val parsedData by lazy {
-    fileReader("02.txt").lineSequence()
+    fileReader("data/02.txt").lineSequence()
         .map { it.split("\\s+".toRegex()).map(String::toInt) }
         .toList()
 }
@@ -30,8 +30,3 @@ object Day02b : Task<Int>({
         }.any { it.isValid() }
     }
 })
-
-fun main() {
-    Day02a.execute()
-    Day02b.execute()
-}

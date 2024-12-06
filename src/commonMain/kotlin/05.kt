@@ -1,7 +1,9 @@
 package io.github.klahap
 
+import kotlin.jvm.JvmInline
+
 private val parsedData: Pair<Set<Rule>, List<Pages>> by lazy {
-    fileReader("05.txt").lineSequence()
+    fileReader("data/05.txt").lineSequence()
         .filter(String::isNotBlank)
         .partition { it.contains("|") }
         .let { (rules, pages) ->
@@ -47,8 +49,3 @@ object Day05b : Task<Int>({
         .mapNotNull { it.sortedByRules(rules).takeIf { sorted -> sorted != it } }
         .sumOf { it.midElement }
 })
-
-fun main() {
-    Day05a.execute()
-    Day05b.execute()
-}

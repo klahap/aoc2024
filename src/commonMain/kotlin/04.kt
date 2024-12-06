@@ -1,6 +1,6 @@
 package io.github.klahap
 
-private val matrix by lazy { fileReader("04.txt").readLines().toCharMatrix() }
+private val matrix by lazy { fileReader("data/04.txt").lineSequence().toList().toCharMatrix() }
 
 object Day04a : Task<Int>({
     matrix.run {
@@ -11,7 +11,7 @@ object Day04a : Task<Int>({
             yieldAll(diagsY)
         }
     }
-        .map { String(it) }
+        .map { it.concatToString() }
         .sumOf { it.count("XMAS", withOverlapping = false) + it.count("SAMX", withOverlapping = false) }
 })
 
@@ -27,8 +27,3 @@ object Day04b : Task<Int>({
         }
     }
 })
-
-fun main() {
-    Day04a.execute()
-    Day04b.execute()
-}

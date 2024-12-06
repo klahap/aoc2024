@@ -5,6 +5,13 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.Source
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.readLine
+import kotlin.jvm.JvmInline
+import kotlin.time.measureTime
 
 @JvmInline
 value class TaskName(val name: String) {
@@ -23,8 +30,17 @@ sealed class Task<T : Any>(val block: () -> T) {
 sealed class AsyncTask<T : Any>(block: suspend CoroutineScope.() -> T) :
     Task<T>({ runBlocking(Dispatchers.Default, block) })
 
-fun fileReader(name: String) = Thread.currentThread().contextClassLoader
-    .getResourceAsStream(name)!!.bufferedReader()
+fun Task<*>.profile() {
+    val n = 100
+    execute(silent = true)
+    val duration = measureTime {
+        (0..<n).forEach { execute(silent = true) }
+    }.let { it / n }.toString().padStart(13, ' ')
+    println("$taskName: $duration")
+}
+
+fun fileReader(name: String) = SystemFileSystem.source(Path(name)).buffered()
+fun Source.lineSequence(): Sequence<String> = generateSequence { readLine() }
 
 sealed interface Pos2D<T> {
     val x: T
@@ -100,7 +116,7 @@ class CharMatrix(
     override val iInc: Int, // iterator steps row
     override val jInc: Int, // iterator steps column
 ) : Matrix<Char, CharArray> {
-    fun copy() = CharMatrix(data = data.clone(), zero = zero, n = n, m = m, iInc = iInc, jInc = jInc)
+    fun copy() = CharMatrix(data = data.copyOf(), zero = zero, n = n, m = m, iInc = iInc, jInc = jInc)
 
     fun slice(i: Int, j: Int, n: Int, m: Int) = CharMatrix(
         data = CharArray(n * m) { get(i + it % m, j + it / m) },

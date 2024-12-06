@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.count
 
 private val parsedData by lazy {
-    fileReader("06.txt").lineSequence().map { line ->
+    fileReader("data/06.txt").lineSequence().map { line ->
         line.map { c ->
             when (c) {
                 '^' -> State.VISIT_UP.mask
@@ -93,7 +93,7 @@ object Day06a : Task<Int>({
 
 object Day06b : AsyncTask<Int>({
     val jobs = Channel<() -> Boolean>(capacity = Channel.UNLIMITED)
-    val worker = launchWorker(nofWorkers = 20) {
+    val worker = launchWorker(nofWorkers = 100) {
         jobs.consumeAsFlow().count { job -> job() }
     }
     parsedData.copy().walk { value, pos, direction ->
@@ -111,8 +111,3 @@ object Day06b : AsyncTask<Int>({
     jobs.close()
     worker.awaitAll().sum()
 })
-
-fun main() {
-    Day06a.execute()
-    Day06b.execute()
-}
