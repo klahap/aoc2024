@@ -17,6 +17,8 @@ private val Task<*>.expectedResult
         Day04b -> 1960
         Day05a -> 6384
         Day05b -> 5353
+        Day06a -> 5131
+        Day06b -> 1784
     }
 
 fun main() {
@@ -31,8 +33,8 @@ fun main() {
             throw AssertionError("error in ${it.taskName}: $actual != $expected")
     }
 
-    val n = 1000
-     mutableMapOf<Task<*>, Duration>().also { executionTimes ->
+    val n = 100
+    mutableMapOf<Task<*>, Duration>().also { executionTimes ->
         (0..<n).forEach {
             tasks.forEach { task ->
                 val d = measureTime { task.execute(silent = true) }
