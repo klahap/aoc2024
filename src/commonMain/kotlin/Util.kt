@@ -159,6 +159,15 @@ class UByteMatrix(
     fun find(c: UByte) = data.indexOf(c).takeIf { it != -1 }?.let { indexToPos(it) }
 }
 
+class LongArrayView(
+    val data: LongArray,
+    val offset: Int = 0,
+) {
+    val size = data.size - offset
+    fun first() = data[offset]
+    fun dropFirst() = LongArrayView(data, offset + 1)
+}
+
 fun List<String>.toCharMatrix(): CharMatrix {
     val nofCols = map { it.length }.distinct().singleOrNull()
         ?: throw IllegalArgumentException("different column sizes")

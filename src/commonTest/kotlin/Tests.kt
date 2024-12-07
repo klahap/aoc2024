@@ -19,6 +19,8 @@ class Tests {
         Day05b.profile()
         Day06a.profile()
         Day06b.profile()
+        Day07a.profile()
+        Day07b.profile()
         println()
     }
 
@@ -56,5 +58,11 @@ class Tests {
     fun day06() {
         Day06a.execute() shouldBe 5131
         Day06b.execute() shouldBe 1784
+    }
+
+    @Test
+    fun day07() {
+        Day07a.execute() shouldBe 5540634308362L
+        Day07b.execute() shouldBe  472290821152397L
     }
 }
