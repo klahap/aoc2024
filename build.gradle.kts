@@ -17,7 +17,13 @@ repositories {
 kotlin {
     macosArm64 {
         binaries {
-            executable()
+            executable(listOf(RELEASE)) {
+                entryPoint = "io.github.klahap.main"
+                freeCompilerArgs = listOf(
+                    "-opt",
+                    "-Xbinary=gc=cms",
+                )
+            }
         }
     }
     jvm {

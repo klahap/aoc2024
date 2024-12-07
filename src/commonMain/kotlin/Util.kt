@@ -30,15 +30,6 @@ sealed class Task<T : Any>(val block: () -> T) {
 sealed class AsyncTask<T : Any>(block: suspend CoroutineScope.() -> T) :
     Task<T>({ runBlocking(Dispatchers.Default, block) })
 
-fun Task<*>.profile() {
-    val n = 100
-    execute(silent = true)
-    val duration = measureTime {
-        (0..<n).forEach { execute(silent = true) }
-    }.let { it / n }.toString().padStart(13, ' ')
-    println("$taskName: $duration")
-}
-
 fun fileReader(name: String) = SystemFileSystem.source(Path(name)).buffered()
 fun Source.lineSequence(): Sequence<String> = generateSequence { readLine() }
 

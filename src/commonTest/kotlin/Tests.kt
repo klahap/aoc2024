@@ -5,26 +5,6 @@ import kotlin.test.Test
 class Tests {
 
     @Test
-    fun profile() {
-        println()
-        Day01a.profile()
-        Day01b.profile()
-        Day02a.profile()
-        Day02b.profile()
-        Day03a.profile()
-        Day03b.profile()
-        Day04a.profile()
-        Day04b.profile()
-        Day05a.profile()
-        Day05b.profile()
-        Day06a.profile()
-        Day06b.profile()
-        Day07a.profile()
-        Day07b.profile()
-        println()
-    }
-
-    @Test
     fun day01() {
         Day01a.execute() shouldBe 1603498
         Day01b.execute() shouldBe 25574739
