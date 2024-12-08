@@ -11,7 +11,6 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readLine
 import kotlin.jvm.JvmInline
-import kotlin.time.measureTime
 
 @JvmInline
 value class TaskName(val name: String) {
@@ -33,6 +32,9 @@ sealed class AsyncTask<T : Any>(block: suspend CoroutineScope.() -> T) :
 fun fileReader(name: String) = SystemFileSystem.source(Path(name)).buffered()
 fun Source.lineSequence(): Sequence<String> = generateSequence { readLine() }
 
+fun <T> List<T>.allCombinations(): Sequence<Pair<T, T>> =
+    asSequence().flatMapIndexed { idx, x -> asSequence().drop(idx + 1).map { y -> x to y } }
+
 sealed interface Pos2D<T> {
     val x: T
     val y: T
@@ -42,6 +44,7 @@ data class IntPos2D(override val x: Int, override val y: Int) : Pos2D<Int> {
     fun rotate90() = IntPos2D(y, -x)
     operator fun plus(other: Pos2D<Int>) = IntPos2D(x + other.x, y + other.y)
     operator fun minus(other: Pos2D<Int>) = IntPos2D(x - other.x, y - other.y)
+    operator fun times(other: Int) = IntPos2D(x * other, y * other)
 }
 
 sealed interface Matrix<T : Any, Vec : Any> {
@@ -55,8 +58,11 @@ sealed interface Matrix<T : Any, Vec : Any> {
     fun isValidPosition(i: Int, j: Int): Boolean =
         (i in 0..<n && j in 0..<m)
 
+    fun isValidPosition(pos: IntPos2D): Boolean =
+        (pos.x in 0..<n && pos.y in 0..<m)
+
+    fun posToIndex(pos: IntPos2D) = pos.x * iInc + pos.y * jInc
     fun indexToPos(x: Int): IntPos2D = when {
-        x !in 0..<m * n -> throw IndexOutOfBoundsException()
         iInc == 1 -> IntPos2D(x / jInc, x % jInc)
         jInc == 1 -> IntPos2D(x / iInc, x % iInc)
         else -> throw NotImplementedError() // TODO
@@ -81,6 +87,10 @@ sealed interface Matrix<T : Any, Vec : Any> {
     operator fun set(index: Int, value: T)
     operator fun set(i: Int, j: Int, value: T) = set(i * iInc + j * jInc, value)
     operator fun set(pos: IntPos2D, value: T) = set(pos.x * iInc + pos.y * jInc, value)
+    fun setOrNull(pos: IntPos2D, value: T) = when {
+        isValidPosition(pos.x, pos.y) -> set(pos.x * iInc + pos.y * jInc, value)
+        else -> null
+    }
 
     fun row(i: Int): Vec = generateVec(m) { get(i, it) }
     fun col(j: Int): Vec = generateVec(n) { get(it, j) }
@@ -100,7 +110,7 @@ sealed interface Matrix<T : Any, Vec : Any> {
 }
 
 class CharMatrix(
-    private val data: CharArray,
+    val data: CharArray,
     override val zero: Char,
     override val n: Int, // #Rows
     override val m: Int, // #Columns
