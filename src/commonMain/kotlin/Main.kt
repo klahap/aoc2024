@@ -28,5 +28,9 @@ fun main() {
     Day06b.profile()
     Day07a.profile()
     Day07b.profile()
+    Day08a.profile()
+    Day08b.profile()
+    Day09a.profile()
+    Day09b.profile()
     println()
 }
