@@ -82,7 +82,7 @@ private fun UByteMatrix.isLoop(pos: IntPos2D, direction: Direction): Boolean {
     return stopReason == StopReason.LOOP
 }
 
-object Day06a : Task<Int>({
+data object Day06a : Task<Int>({
     var result = 1
     parsedData.copy().walk { b, _, _ ->
         if (b.hasNoState()) result++
@@ -91,7 +91,7 @@ object Day06a : Task<Int>({
     result
 })
 
-object Day06b : AsyncTask<Int>({
+data object Day06b : AsyncTask<Int>({
     val jobs = Channel<() -> Boolean>(capacity = Channel.UNLIMITED)
     val worker = launchWorker(nofWorkers = 100) {
         jobs.consumeAsFlow().count { job -> job() }

@@ -2,7 +2,7 @@ package io.github.klahap
 
 private val matrix by lazy { fileReader("data/04.txt").lineSequence().toList().toCharMatrix() }
 
-object Day04a : Task<Int>({
+data object Day04a : Task<Int>({
     matrix.run {
         sequence {
             yieldAll(rows)
@@ -15,7 +15,7 @@ object Day04a : Task<Int>({
         .sumOf { it.count("XMAS", withOverlapping = false) + it.count("SAMX", withOverlapping = false) }
 })
 
-object Day04b : Task<Int>({
+data object Day04b : Task<Int>({
     matrix.run {
         indices().count { (i, j) ->
             if (getOrZero(i, j) != 'A') return@count false

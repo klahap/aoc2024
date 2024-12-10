@@ -17,24 +17,24 @@ private fun block(index: Int, size: Int, value: Int) =
 
 private fun Block.sum() = (0 until size).sumOf { (it + index) * value.toLong() }
 
-object Day09a : Task<Long>({
+data object Day09a : Task<Long>({
     val data = parsedData
-    val length = (0..<data.size step 2).sumOf { data[it] }
+    val length = (data.indices step 2).sumOf { data[it] }
     val backwardSequence = (data.size - 1 downTo 0 step 2).asSequence().flatMap { index ->
         (0..<data[index]).map { index / 2 }
     }.iterator()
     sequence {
         var i = 0
         while (true) {
-            (0..<data[i]).forEach { yield(i / 2) }
+            repeat(data[i]) { yield(i / 2) }
             i++
-            (0..<data[i]).forEach { yield(backwardSequence.next()) }
+            repeat(data[i]) { yield(backwardSequence.next()) }
             i++
         }
     }.take(length).withIndex().sumOf { (it.index * it.value).toLong() }
 })
 
-object Day09b : Task<Long>({
+data object Day09b : Task<Long>({
     val data = run {
         var index = 0
         parsedData.mapIndexed { idx, size ->

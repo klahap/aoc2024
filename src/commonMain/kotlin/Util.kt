@@ -13,7 +13,7 @@ import kotlinx.io.readLine
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class TaskName(val name: String) {
+value class TaskName(private val name: String) {
     override fun toString(): String = name
 }
 
@@ -162,7 +162,7 @@ class UByteMatrix(
 
 class LongArrayView(
     val data: LongArray,
-    val offset: Int = 0,
+    private val offset: Int = 0,
 ) {
     val size = data.size - offset
     fun first() = data[offset]

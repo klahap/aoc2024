@@ -36,14 +36,14 @@ private fun Set<Rule>.toComparator() = Comparator<Int> { p0, p1 ->
 private fun Pages.sortedByRules(rules: Set<Rule>) = Pages(data.sortedWith(rules.toComparator()))
 
 
-object Day05a : Task<Int>({
+data object Day05a : Task<Int>({
     val (rules, pagesRow) = parsedData
     pagesRow.asSequence()
         .filter { it.sortedByRules(rules) == it }
         .sumOf { it.midElement }
 })
 
-object Day05b : Task<Int>({
+data object Day05b : Task<Int>({
     val (rules, pagesRow) = parsedData
     pagesRow.asSequence()
         .mapNotNull { it.sortedByRules(rules).takeIf { sorted -> sorted != it } }

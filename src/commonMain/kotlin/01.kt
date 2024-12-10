@@ -12,7 +12,7 @@ private val parsedData by lazy {
         .toList()
 }
 
-object Day01a : Task<Int>({
+data object Day01a : Task<Int>({
     parsedData.let { data ->
         val column1 = data.map { it.first }.sorted()
         val column2 = data.map { it.second }.sorted()
@@ -20,7 +20,7 @@ object Day01a : Task<Int>({
     }.sumOf { (e1, e2) -> (e2 - e1).absoluteValue }
 })
 
-object Day01b : Task<Int>({
+data object Day01b : Task<Int>({
     parsedData.let { data ->
         val column1 = data.map { it.first }.groupingBy { it }.eachCount()
         val column2 = data.map { it.second }.groupingBy { it }.eachCount()

@@ -27,5 +27,5 @@ private fun List<Pair<Long, LongArray>>.compute(withJoins: Boolean) =
     filter { (result, numbers) -> result.check(LongArrayView(numbers), withJoins = withJoins) }
         .sumOf { (result, _) -> result }
 
-object Day07a : Task<Long>({ parsedData.compute(withJoins = false) })
-object Day07b : Task<Long>({ parsedData.compute(withJoins = true) })
+data object Day07a : Task<Long>({ parsedData.compute(withJoins = false) })
+data object Day07b : Task<Long>({ parsedData.compute(withJoins = true) })

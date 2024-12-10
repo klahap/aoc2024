@@ -7,7 +7,7 @@ private fun Task<*>.profile() {
     val n = 100
     execute(silent = true)
     val duration = measureTime {
-        (0..<n).forEach { execute(silent = true) }
+        repeat(n) { execute(silent = true) }
     }.let { it / n }.toString().padStart(13, ' ')
     println("$taskName: $duration")
 }

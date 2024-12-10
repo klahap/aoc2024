@@ -12,16 +12,16 @@ private val parsedData by lazy {
 
 private fun List<Int>.isValid(): Boolean {
     val diffs = windowed(2) { (a, b) -> b - a }
-    val isValidIncreasing = diffs.all { it in +1..+3 }
+    val isValidIncreasing = diffs.all { it in +1..3 }
     val isValidDecreasing = diffs.all { it in -3..-1 }
     return isValidIncreasing || isValidDecreasing
 }
 
-object Day02a : Task<Int>({
+data object Day02a : Task<Int>({
     parsedData.count { it.isValid() }
 })
 
-object Day02b : Task<Int>({
+data object Day02b : Task<Int>({
     parsedData.count { line ->
         sequence {
             yield(line)

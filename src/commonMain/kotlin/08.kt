@@ -33,5 +33,5 @@ private fun CharMatrix.count(anyGridPos: Boolean): Int = data.iterator().withInd
     }
     .distinct().count()
 
-object Day08a : Task<Int>({ parsedData.count(anyGridPos = false) })
-object Day08b : Task<Int>({ parsedData.count(anyGridPos = true) })
+data object Day08a : Task<Int>({ parsedData.count(anyGridPos = false) })
+data object Day08b : Task<Int>({ parsedData.count(anyGridPos = true) })
