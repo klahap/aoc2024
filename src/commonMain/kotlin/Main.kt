@@ -34,5 +34,7 @@ fun main() {
     Day09b.profile()
     Day10a.profile()
     Day10b.profile()
+    Day11a.profile()
+    Day11b.profile()
     println()
 }
