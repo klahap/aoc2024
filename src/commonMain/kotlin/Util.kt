@@ -212,3 +212,15 @@ fun <T> CoroutineScope.launchWorker(
     nofWorkers: Int,
     block: suspend CoroutineScope.(Int) -> T,
 ): List<Deferred<T>> = (0..<nofWorkers).map { async { block(it) } }
+
+private val thresholds = generateSequence(10L) { it * 10L }.take(18).toList().toLongArray()
+fun Int.pow10() = thresholds[this - 1]
+fun Long.countDigitsBase10(): Int {
+    var low = 0
+    var high = thresholds.size - 1
+    while (low < high) {
+        val mid = (low + high) / 2
+        if (this < thresholds[mid]) high = mid else low = mid + 1
+    }
+    return low + 1
+}
