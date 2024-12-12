@@ -97,11 +97,11 @@ sealed interface Matrix<T : Any, Vec : Any> {
     fun diagX(k: Int): Vec = generateVec(m) { getOrZero(k + it, it) }
     fun diagY(k: Int): Vec = generateVec(m) { getOrZero(k - it, it) }
 
-    fun indices(): Sequence<Pair<Int, Int>> =
-        (0..<n).asSequence().flatMap { i -> (0..<n).asSequence().map { j -> i to j } }
+    fun indices(): Sequence<IntPos2D> =
+        (0..<n).asSequence().flatMap { i -> (0..<n).asSequence().map { j -> IntPos2D(i, j) } }
 
-    fun values(): Sequence<Pair<Pair<Int, Int>, T>> =
-        indices().map { it to get(it.first, it.second) }
+    fun values(): Sequence<Pair<IntPos2D, T>> =
+        indices().map { it to get(it) }
 
     val rows get() = (0..<n).asSequence().map { row(it) }
     val cols get() = (0..<m).asSequence().map { col(it) }

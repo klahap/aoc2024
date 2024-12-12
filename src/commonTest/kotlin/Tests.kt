@@ -69,4 +69,10 @@ class Tests {
         Day11a.execute() shouldBe 199946L
         Day11b.execute() shouldBe 237994815702032L
     }
+
+    @Test
+    fun day12() {
+        Day12a.execute() shouldBe 1344578
+        Day12b.execute() shouldBe 814302
+    }
 }
