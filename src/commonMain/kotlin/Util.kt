@@ -47,6 +47,13 @@ data class IntPos2D(override val x: Int, override val y: Int) : Pos2D<Int> {
     operator fun times(other: Int) = IntPos2D(x * other, y * other)
 }
 
+data class LongPos2D(override val x: Long, override val y: Long) : Pos2D<Long> {
+    fun rotate90() = LongPos2D(y, -x)
+    operator fun plus(other: Pos2D<Long>) = LongPos2D(x + other.x, y + other.y)
+    operator fun minus(other: Pos2D<Long>) = LongPos2D(x - other.x, y - other.y)
+    operator fun times(other: Int) = LongPos2D(x * other, y * other)
+}
+
 sealed interface Matrix<T : Any, Vec : Any> {
     val zero: T
     val n: Int
