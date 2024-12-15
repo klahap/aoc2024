@@ -10,6 +10,7 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readLine
+import kotlinx.io.readString
 import kotlin.jvm.JvmInline
 
 @JvmInline
@@ -31,6 +32,7 @@ sealed class AsyncTask<T : Any>(block: suspend CoroutineScope.() -> T) :
 
 fun fileReader(name: String) = SystemFileSystem.source(Path(name)).buffered()
 fun Source.lineSequence(): Sequence<String> = generateSequence { readLine() }
+fun Source.readText() = readString()
 
 fun <T> List<T>.allCombinations(): Sequence<Pair<T, T>> =
     asSequence().flatMapIndexed { idx, x -> asSequence().drop(idx + 1).map { y -> x to y } }
@@ -105,7 +107,7 @@ sealed interface Matrix<T : Any, Vec : Any> {
     fun diagY(k: Int): Vec = generateVec(m) { getOrZero(k - it, it) }
 
     fun indices(): Sequence<IntPos2D> =
-        (0..<n).asSequence().flatMap { i -> (0..<n).asSequence().map { j -> IntPos2D(i, j) } }
+        (0..<n).asSequence().flatMap { i -> (0..<m).asSequence().map { j -> IntPos2D(i, j) } }
 
     fun values(): Sequence<Pair<IntPos2D, T>> =
         indices().map { it to get(it) }

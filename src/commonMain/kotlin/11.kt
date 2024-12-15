@@ -1,8 +1,6 @@
 package io.github.klahap
 
-import kotlinx.io.readString
-
-private val parsedData by lazy { fileReader("data/11.txt").readString().split(' ').map(String::toLong) }
+private val parsedData by lazy { fileReader("data/11.txt").readText().split(' ').map(String::toLong) }
 
 private fun List<Long>.compute(steps: Int): Long = generateSequence(associateWith { 1L }) { state ->
     state.entries.flatMap { (stone, count) ->

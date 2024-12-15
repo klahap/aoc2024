@@ -1,8 +1,6 @@
 package io.github.klahap
 
-import kotlinx.io.readString
-
-private val rawData by lazy { fileReader("data/03.txt").readString() }
+private val rawData by lazy { fileReader("data/03.txt").readText() }
 
 private fun String.compute() = "mul\\((\\d{1,3}),(\\d{1,3})\\)".toRegex().findAll(this)
     .sumOf { it.groupValues[1].toInt() * it.groupValues[2].toInt() }

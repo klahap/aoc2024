@@ -1,10 +1,8 @@
 package io.github.klahap
 
-import kotlinx.io.readString
-
 private val coordRegex = ".*?X[+=](\\d+), Y[+=](\\d+)".toRegex()
 private val parsedData by lazy {
-    fileReader("data/13.txt").readString().split("\n\n").map { machineStr ->
+    fileReader("data/13.txt").readText().split("\n\n").map { machineStr ->
         val (a, b, prize) = machineStr.split("\n").map { line ->
             coordRegex.matchEntire(line)!!.let { LongPos2D(it.groupValues[1].toLong(), it.groupValues[2].toLong()) }
         }
@@ -12,7 +10,7 @@ private val parsedData by lazy {
     }
 }
 
-data class Machine(
+private data class Machine(
     val a: LongPos2D,
     val b: LongPos2D,
     val prize: LongPos2D,

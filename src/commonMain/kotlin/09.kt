@@ -1,9 +1,7 @@
 package io.github.klahap
 
-import kotlinx.io.readString
-
 private val parsedData: IntArray by lazy {
-    fileReader("data/09.txt").readString()
+    fileReader("data/09.txt").readText()
         .map(Char::toString).map(String::toInt).toIntArray()
 }
 
