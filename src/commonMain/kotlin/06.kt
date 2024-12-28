@@ -29,22 +29,13 @@ private enum class State(shift: Int) {
     val mask = (1 shl shift).toUByte()
 }
 
-private enum class Direction(
-    val vec: IntPos2D,
-    val state: State,
-) {
-    UP(IntPos2D(-1, 0), State.VISIT_UP),
-    RIGHT(UP.vec.rotate90(), State.VISIT_RIGHT),
-    DOWN(RIGHT.vec.rotate90(), State.VISIT_DOWN),
-    LEFT(DOWN.vec.rotate90(), State.VISIT_LEFT);
-
-    fun rotate90() = when (this) {
-        UP -> RIGHT
-        RIGHT -> DOWN
-        DOWN -> LEFT
-        LEFT -> UP
+private val Direction.state
+    get() = when (this) {
+        Direction.UP -> State.VISIT_UP
+        Direction.RIGHT -> State.VISIT_RIGHT
+        Direction.DOWN -> State.VISIT_DOWN
+        Direction.LEFT -> State.VISIT_LEFT
     }
-}
 
 private enum class StopReason { LOOP, OUT_OF_BOUNDS }
 
@@ -58,26 +49,26 @@ private inline fun UByteMatrix.walk(
     direction: Direction = Direction.UP,
     stopCondition: UByteMatrix.(UByte, IntPos2D, Direction) -> StopReason?,
 ): StopReason {
-    var pos = pos
-    var direction = direction
+    var p = pos
+    var d = direction
     while (true) {
-        val b = getOrNull(pos) ?: return StopReason.OUT_OF_BOUNDS
-        stopCondition(b, pos, direction)?.let { return it }
+        val b = getOrNull(p) ?: return StopReason.OUT_OF_BOUNDS
+        stopCondition(b, p, d)?.let { return it }
         when {
             b.isBlock() -> {
-                pos -= direction.vec
-                direction = direction.rotate90()
+                p -= d.vec
+                d = d.rotate90()
             }
 
-            else -> set(pos, b.addState(direction.state))
+            else -> set(p, b.addState(d.state))
         }
-        pos += direction.vec
+        p += d.vec
     }
 }
 
 private fun UByteMatrix.isLoop(pos: IntPos2D, direction: Direction): Boolean {
-    val stopReason = walk(pos = pos, direction = direction) { value, _, direction ->
-        if (value.hasState(direction.state)) StopReason.LOOP else null
+    val stopReason = walk(pos = pos, direction = direction) { value, _, d ->
+        if (value.hasState(d.state)) StopReason.LOOP else null
     }
     return stopReason == StopReason.LOOP
 }

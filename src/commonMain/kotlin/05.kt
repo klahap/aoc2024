@@ -1,40 +1,26 @@
 package io.github.klahap
 
-import kotlin.jvm.JvmInline
-
 private val parsedData: Pair<Set<Rule>, List<Pages>> by lazy {
     fileReader("data/05.txt").lineSequence()
         .filter(String::isNotBlank)
         .partition { it.contains("|") }
         .let { (rules, pages) ->
-            val parsedRules = rules.map {
-                Rule(
-                    it.substringBefore('|').toInt(),
-                    it.substringAfter('|').toInt(),
-                )
-            }.toSet()
-            val parsedPages = pages.map { Pages(it.split(',').map(String::toInt)) }
+            val parsedRules = rules.map { it.split('|').map(String::toInt).toPair() }.toSet()
+            val parsedPages = pages.map { it.split(',').map(String::toInt) }
             parsedRules to parsedPages
         }
 }
 
-@JvmInline
-private value class Rule(val data: Pair<Int, Int>) {
-    constructor(first: Int, second: Int) : this(first to second)
-}
+private typealias Rule = Pair<Int, Int>
+private typealias Pages = List<Int>
 
-@JvmInline
-private value class Pages(val data: List<Int>) {
-    val midElement get() = data[data.size / 2]
-}
+private val Pages.midElement get() = this[size / 2]
 
+private fun Pages.sortedByRules(rules: Set<Rule>): Pages = sortedWith(rules.toComparator())
 private fun Set<Rule>.toComparator() = Comparator<Int> { p0, p1 ->
     if (contains(Rule(p1, p0))) 1
     else -1
 }
-
-private fun Pages.sortedByRules(rules: Set<Rule>) = Pages(data.sortedWith(rules.toComparator()))
-
 
 data object Day05a : Task<Int>({
     val (rules, pagesRow) = parsedData

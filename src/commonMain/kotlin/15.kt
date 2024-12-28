@@ -3,22 +3,15 @@ package io.github.klahap
 private val parsedData by lazy {
     val (matrixRaw, movementsRaw) = fileReader("data/15.txt").readText().split("\n\n")
     val matrix = matrixRaw.split('\n').toCharMatrix()
-    val movements = movementsRaw.replace("\n", "").map { Move.entries.first { m -> m.char == it } }
+    val movements = movementsRaw.replace("\n", "").map(Char::toDirection)
     matrix to movements.toTypedArray()
-}
-
-private enum class Move(val char: Char, val vec: IntPos2D) {
-    UP('^', IntPos2D(-1, 0)),
-    DOWN('v', IntPos2D(1, 0)),
-    LEFT('<', IntPos2D(0, -1)),
-    RIGHT('>', IntPos2D(0, 1)),
 }
 
 private fun Char.flipBoxSide() = if (this == '[') ']' else '['
 private fun CharMatrix.computeResult(char: Char) = values()
     .sumOf { (pos, c) -> if (c == char) (pos.x * 100 + pos.y).toLong() else 0L }
 
-private fun CharMatrix.canMoveBoxesHorizontal(pos: IntPos2D, move: Move): Int? {
+private fun CharMatrix.canMoveBoxesHorizontal(pos: IntPos2D, move: Direction): Int? {
     for (i in 2..Int.MAX_VALUE step 2)
         return when (this[pos + (move.vec * i)]) {
             '.' -> i
@@ -28,16 +21,16 @@ private fun CharMatrix.canMoveBoxesHorizontal(pos: IntPos2D, move: Move): Int? {
     error("endless loop")
 }
 
-private fun CharMatrix.moveBoxesHorizontal(pos: IntPos2D, move: Move, steps: Int) {
+private fun CharMatrix.moveBoxesHorizontal(pos: IntPos2D, move: Direction, steps: Int) {
     val firstBoxSide = this[pos]
     this[pos] = '.'
     for (i in 1..steps)
         this[pos + (move.vec * i)] = if (i % 2 == 1) firstBoxSide else firstBoxSide.flipBoxSide()
 }
 
-private fun CharMatrix.canMoveBoxesVertical(pos: IntPos2D, move: Move): Boolean {
+private fun CharMatrix.canMoveBoxesVertical(pos: IntPos2D, move: Direction): Boolean {
     val side = get(pos)
-    val posOther = pos + (if (side == '[') Move.RIGHT.vec else Move.LEFT.vec)
+    val posOther = pos + (if (side == '[') Direction.RIGHT.vec else Direction.LEFT.vec)
     val newPos = pos + move.vec to posOther + move.vec
     val newPosChar = get(newPos.first) to get(newPos.second)
     if (newPosChar.first == '#' || newPosChar.second == '#') return false
@@ -48,9 +41,9 @@ private fun CharMatrix.canMoveBoxesVertical(pos: IntPos2D, move: Move): Boolean 
     return true
 }
 
-private fun CharMatrix.moveBoxesVertical(pos: IntPos2D, move: Move) {
+private fun CharMatrix.moveBoxesVertical(pos: IntPos2D, move: Direction) {
     val side = get(pos)
-    val posOther = pos + (if (side == '[') Move.RIGHT.vec else Move.LEFT.vec)
+    val posOther = pos + (if (side == '[') Direction.RIGHT.vec else Direction.LEFT.vec)
     val newPos = pos + move.vec to posOther + move.vec
     val newPosChar = get(newPos.first) to get(newPos.second)
     if (newPosChar.first == '[' || newPosChar.first == ']')
@@ -63,9 +56,10 @@ private fun CharMatrix.moveBoxesVertical(pos: IntPos2D, move: Move) {
     set(newPos.second, side.flipBoxSide())
 }
 
-private fun CharMatrix.moveBoxes(pos: IntPos2D, move: Move) = when (move) {
-    Move.UP, Move.DOWN -> canMoveBoxesVertical(pos, move).also { if (it) moveBoxesVertical(pos, move) }
-    Move.LEFT, Move.RIGHT -> canMoveBoxesHorizontal(pos, move)?.also { moveBoxesHorizontal(pos, move, it) } != null
+private fun CharMatrix.moveBoxes(pos: IntPos2D, move: Direction) = when (move) {
+    Direction.UP, Direction.DOWN -> canMoveBoxesVertical(pos, move).also { if (it) moveBoxesVertical(pos, move) }
+    Direction.LEFT, Direction.RIGHT -> canMoveBoxesHorizontal(pos, move)
+        ?.also { moveBoxesHorizontal(pos, move, it) } != null
 }
 
 data object Day15a : Task<Long>({

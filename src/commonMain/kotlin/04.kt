@@ -3,14 +3,7 @@ package io.github.klahap
 private val matrix by lazy { fileReader("data/04.txt").lineSequence().toList().toCharMatrix() }
 
 data object Day04a : Task<Int>({
-    matrix.run {
-        sequence {
-            yieldAll(rows)
-            yieldAll(cols)
-            yieldAll(diagsX)
-            yieldAll(diagsY)
-        }
-    }
+    matrix.run { rows + cols + diagsX + diagsY }
         .map { it.concatToString() }
         .sumOf { it.count("XMAS", withOverlapping = false) + it.count("SAMX", withOverlapping = false) }
 })

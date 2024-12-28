@@ -1,9 +1,11 @@
 import io.github.klahap.*
-import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
-class Tests {
+private infix fun <T> T.shouldBe(expected: T) {
+    if (this != expected) throw AssertionError("'$this' is not equal to expected value '$expected'")
+}
 
+class Tests {
     @Test
     fun day01() {
         Day01a.execute() shouldBe 1603498
@@ -92,5 +94,65 @@ class Tests {
     fun day15() {
         Day15a.execute() shouldBe 1514333L
         Day15b.execute() shouldBe 1528453L
+    }
+
+    @Test
+    fun day16() {
+        Day16a.execute() shouldBe 109496
+        Day16b.execute() shouldBe 551
+    }
+
+    @Test
+    fun day17() {
+        Day17a.execute() shouldBe "6,2,7,2,3,1,6,0,5"
+        Day17b.execute() shouldBe -1 // TODO
+    }
+
+    @Test
+    fun day18() {
+        Day18a.execute() shouldBe 336
+        Day18b.execute() shouldBe "24,30"
+    }
+
+    @Test
+    fun day19() {
+        Day19a.execute() shouldBe 233
+        Day19b.execute() shouldBe 691316989225259uL
+    }
+
+    @Test
+    fun day20() {
+        Day20a.execute() shouldBe 1381
+        Day20b.execute() shouldBe 982124
+    }
+
+    @Test
+    fun day21() {
+        Day21a.execute() shouldBe 206798uL
+        Day21b.execute() shouldBe 251508572750680uL
+    }
+
+    @Test
+    fun day22() {
+        Day22a.execute() shouldBe 20401393616uL
+        Day22b.execute() shouldBe 2272
+    }
+
+    @Test
+    fun day23() {
+        Day23a.execute() shouldBe 1314
+        Day23b.execute() shouldBe "bg,bu,ce,ga,hw,jw,nf,nt,ox,tj,uu,vk,wp"
+    }
+
+    @Test
+    fun day24() {
+        Day24a.execute() shouldBe 53190357879014uL
+        Day24b.execute() shouldBe -1 // TODO
+    }
+
+    @Test
+    fun day25() {
+        Day25a.execute() shouldBe 2586
+        Day25b.execute() shouldBe -1 // TODO
     }
 }

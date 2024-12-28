@@ -1,13 +1,8 @@
 package io.github.klahap
 
-import kotlin.collections.component1
-import kotlin.collections.component2
-
-
 private val parsedData by lazy {
-    fileReader("data/02.txt").lineSequence()
+    fileReader("data/02.txt").lineSequence().toList()
         .map { it.split("\\s+".toRegex()).map(String::toInt) }
-        .toList()
 }
 
 private fun List<Int>.isValid(): Boolean {
@@ -18,7 +13,7 @@ private fun List<Int>.isValid(): Boolean {
 }
 
 data object Day02a : Task<Int>({
-    parsedData.count { it.isValid() }
+    parsedData.count(List<Int>::isValid)
 })
 
 data object Day02b : Task<Int>({
@@ -27,6 +22,6 @@ data object Day02b : Task<Int>({
             yield(line)
             for (i in 0..<(line.size))
                 yield(line.toMutableList().apply { removeAt(i) })
-        }.any { it.isValid() }
+        }.any(List<Int>::isValid)
     }
 })
