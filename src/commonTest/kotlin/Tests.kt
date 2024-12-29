@@ -105,7 +105,7 @@ class Tests {
     @Test
     fun day17() {
         Day17a.execute() shouldBe "6,2,7,2,3,1,6,0,5"
-        Day17b.execute() shouldBe -1 // TODO
+        Day17b.execute() shouldBe 236548287712877uL
     }
 
     @Test
