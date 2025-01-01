@@ -147,12 +147,11 @@ class Tests {
     @Test
     fun day24() {
         Day24a.execute() shouldBe 53190357879014uL
-        Day24b.execute() shouldBe -1 // TODO
+        Day24b.execute() shouldBe "bks,hnd,nrn,tdv,tjp,z09,z16,z23"
     }
 
     @Test
     fun day25() {
         Day25a.execute() shouldBe 2586
-        Day25b.execute() shouldBe -1 // TODO
     }
 }

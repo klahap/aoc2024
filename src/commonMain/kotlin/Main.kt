@@ -40,8 +40,8 @@ fun main() {
     Day14b.profile()
     Day15a.profile()
     Day15b.profile()
-    Day16a.profile(n=10) // slow :(
-    Day16b.profile(n=10) // slow :(
+    Day16a.profile(n = 10) // slow :(
+    Day16b.profile(n = 10) // slow :(
     Day17a.profile()
     Day17b.profile()
     Day18a.profile()
@@ -49,16 +49,15 @@ fun main() {
     Day19a.profile()
     Day19b.profile()
     Day20a.profile()
-    Day20b.profile(n=5) // slow :(
+    Day20b.profile(n = 5) // slow :(
     Day21a.profile()
     Day21b.profile()
     Day22a.profile()
-    Day22b.profile(n=5) // slow :(
+    Day22b.profile(n = 5) // slow :(
     Day23a.profile()
     Day23b.profile()
     Day24a.profile()
-    Day24b.profile()
+    Day24b.profile(n = 5) // slow :(
     Day25a.profile()
-    Day25b.profile()
     println()
 }

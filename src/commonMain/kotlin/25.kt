@@ -10,12 +10,6 @@ private val parsedData by lazy {
         .partition { it.first }.toList().map { it.map { x -> x.second }.toSet() }.toPair()
 }
 
-private fun matchesKeyLockPair(a: UByteArray, b: UByteArray): Boolean = a.zip(b).all { (x, y) -> x + y <= 5u }
-
 data object Day25a : Task<Int>({
-    parsedData.allCombinations().count { matchesKeyLockPair(it.first, it.second) }
-})
-
-data object Day25b : Task<Int>({
-    -1
+    parsedData.allCombinations().count { (a, b) -> a.zip(b).all { (x, y) -> x + y <= 5u } }
 })
